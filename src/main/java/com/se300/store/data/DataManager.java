@@ -16,22 +16,14 @@ public class DataManager {
 
     private static volatile DataManager instance;
 
-    // Use ConcurrentHashMap for thread-safety
+    //TODO: Use ConcurrentHashMap for thread-safety
 
     // Private constructor to prevent instantiation
     private DataManager() {
     }
 
-    // Thread-safe singleton implementation with double-checked locking
     public static DataManager getInstance() {
-        if (instance == null) {
-            synchronized (DataManager.class) {
-                if (instance == null) {
-                    instance = new DataManager();
-                }
-            }
-        }
-        return instance;
+        return new DataManager();
     }
 
     /**

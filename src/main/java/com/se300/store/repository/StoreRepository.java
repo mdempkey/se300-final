@@ -21,11 +21,6 @@ public class StoreRepository {
 
     public StoreRepository(DataManager dataManager) {
         this.dataManager = dataManager;
-        // Initialize store storage in DataManager if not exists
-        if (!dataManager.containsKey(STORES_KEY)) {
-            Map<String, Store> stores = new HashMap<>();
-            dataManager.put(STORES_KEY, stores);
-        }
     }
 
     /**
@@ -74,11 +69,6 @@ public class StoreRepository {
      */
     @SuppressWarnings("unchecked")
     private Map<String, Store> getStoresMap() {
-        Map<String, Store> stores = dataManager.get(STORES_KEY);
-        if (stores == null) {
-            stores = new HashMap<>();
-            dataManager.put(STORES_KEY, stores);
-        }
-        return stores;
+        return dataManager.get(STORES_KEY);
     }
 }
