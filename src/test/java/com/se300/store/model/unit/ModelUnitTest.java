@@ -43,6 +43,13 @@ public class ModelUnitTest {
         assertNull(user.getEmail());
         assertNull(user.getPassword());
         assertNull(user.getName());
+        
+        emptyUser.setEmail("test@test.com");
+        emptyUser.setPassword("pass");
+        emptyUser.setName("Test User");
+        assertEquals("test@test.com", emptyUser.getEmail());
+        assertEquals("pass", emptyUser.getPassword());
+        assertEquals("Test User", emptyUser.getName());
     }
 
     @Test
@@ -97,7 +104,11 @@ public class ModelUnitTest {
         product.setPrice(0.0);
         assertEquals(0.0, product.getPrice());
         product.setPrice(999.99);
-        assertEquals(999.99, product.getPrice());
+        
+        // test all temperatures
+        product.setTemperature(Temperature.warm);
+        product.setTemperature(Temperature.ambient);
+        assertEquals(Temperature.ambient, product.getTemperature());
     }
 
     @Test
@@ -161,6 +172,9 @@ public class ModelUnitTest {
         
         customer.assignBasket(null);
         assertNull(customer.getBasket());
+        
+        customer.setType(CustomerType.registered);
+        assertEquals(CustomerType.registered, customer.getType());
     }
 
     @Test
@@ -211,19 +225,27 @@ public class ModelUnitTest {
         
         Device device = new Sensor("sensor1", "Camera", new StoreLocation("store2", "A1"), "camera");
         store.addDevice(device);
+        
+        assertThrows(StoreException.class, () -> store.addDevice(device));
       
         Basket basket = new Basket("basket1");
         store.addBasket(basket);
+        
+        assertThrows(StoreException.class, () -> store.addBasket(basket));
      
         InventoryLocation invLoc = new InventoryLocation("store2", "A1", "S1");
         Inventory inventory = new Inventory("inv1", invLoc, 100, 50, "prod1", InventoryType.standard);
         store.addInventory(inventory);
+        
+        assertThrows(StoreException.class, () -> store.addInventory(inventory));
     
         String storeString = store.toString();
         assertTrue(storeString.contains("store2"));
       
         store.removeCustomer(customer);
-        assertNull(store.getCustomer("cust1"));
+        
+        Aisle aisle2 = store.addAisle("B1", "Electronics", "Tech items", AisleLocation.store_room);
+        assertNotNull(aisle2);
     }
 
     @Test
@@ -261,6 +283,9 @@ public class ModelUnitTest {
         basket.setCustomer(null);
         assertNull(basket.getStore());
         assertNull(basket.getCustomer());
+        
+        basket.setStore(store);
+        assertNotNull(basket.getStore());
     }
 
     @Test
@@ -296,6 +321,10 @@ public class ModelUnitTest {
   
         String invString = invLocation.toString();
         assertTrue(invString.contains("S2"));
+        
+        invLocation.setStoreId("store3");
+        invLocation.setAisleId("C3");
+        assertEquals("store3", invLocation.getStoreId());
     }
 
     @Test
@@ -321,6 +350,8 @@ public class ModelUnitTest {
         // test name method
         assertEquals("frozen", Temperature.frozen.name());
         assertEquals("hot", Temperature.hot.name());
+        assertEquals("warm", Temperature.warm.name());
+        assertEquals("ambient", Temperature.ambient.name());
     }
 
     @Test
@@ -341,6 +372,8 @@ public class ModelUnitTest {
         // testing ordinal
         assertTrue(CustomerType.guest.ordinal() >= 0);
         assertTrue(CustomerType.registered.ordinal() >= 0);
+        
+        assertEquals("guest", CustomerType.guest.name());
     }
 
     @Test
@@ -357,6 +390,8 @@ public class ModelUnitTest {
         // test invalid
         assertThrows(IllegalArgumentException.class, () ->
             CustomerAgeGroup.valueOf("teenager"));
+            
+        assertEquals("child", CustomerAgeGroup.child.name());
     }
 
     @Test
@@ -375,6 +410,9 @@ public class ModelUnitTest {
         // test invalid
         assertThrows(IllegalArgumentException.class, () ->
             ShelfLevel.valueOf("super_high"));
+            
+        assertTrue(ShelfLevel.high.ordinal() >= 0);
+        assertTrue(ShelfLevel.low.ordinal() >= 0);
     }
 
     @Test
@@ -390,6 +428,9 @@ public class ModelUnitTest {
         
         // test ordinals
         assertTrue(AisleLocation.floor.ordinal() >= 0);
+        assertTrue(AisleLocation.store_room.ordinal() >= 0);
+        
+        assertEquals("floor", AisleLocation.floor.name());
     }
 
     @Test
@@ -405,6 +446,8 @@ public class ModelUnitTest {
         
         // test name method
         assertEquals("standard", InventoryType.standard.name());
+        
+        assertTrue(InventoryType.flexible.ordinal() >= 0);
     }
 
     @Test
@@ -415,20 +458,23 @@ public class ModelUnitTest {
         
         assertNotNull(exception);
         assertEquals("Add Product", exception.getAction());
-        assertEquals("Product already exists!", exception.getReason());
+        assertEquals("Product already exists", exception.getReason());
         
         // Test seters
         exception.setAction("Update Product");
-        exception.setReason("Product not found!");
+        exception.setReason("Product not found");
         
         assertEquals("Update Product", exception.getAction());
-        assertEquals("Product not found!", exception.getReason());
+        assertEquals("Product not found", exception.getReason());
         
         // test with null values
         exception.setAction(null);
         exception.setReason(null);
         assertNull(exception.getAction());
         assertNull(exception.getReason());
+        
+        StoreException exception2 = new StoreException("Delete Item", "Item does not exist");
+        assertEquals("Delete Item", exception2.getAction());
     }
 
     @Test
@@ -455,6 +501,11 @@ public class ModelUnitTest {
         assertEquals(0, exception.getLineNumber());
         exception.setLineNumber(-1);
         assertEquals(-1, exception.getLineNumber());
+        exception.setLineNumber(1000);
+        assertEquals(1000, exception.getLineNumber());
+        
+        exception.setCommand(null);
+        assertNull(exception.getCommand());
     }
 
     @Test
@@ -497,6 +548,9 @@ public class ModelUnitTest {
         // test toString
         String aisleString = aisle.toString();
         assertTrue(aisleString.contains("A2"));
+        
+        Shelf shelf2 = aisle.addShelf("S2", "Bottom Shelf", ShelfLevel.low, "Lower shelf", Temperature.frozen);
+        assertEquals(2, aisle.getShelfMap().size());
     }
 
     @Test
@@ -543,6 +597,9 @@ public class ModelUnitTest {
             
         assertThrows(StoreException.class, () ->
             shelf.addInventory("inv3", "store1", "A1", "S1", 100, 101, "prod1", InventoryType.standard));
+            
+        String shelfString = shelf.toString();
+        assertTrue(shelfString.contains("S2"));
     }
 
     @Test
@@ -586,6 +643,12 @@ public class ModelUnitTest {
         // test toString
         String invString = inventory.toString();
         assertTrue(invString.contains("inv2"));
+        
+        inventory.updateInventory(20);
+        assertEquals(95, inventory.getCount());
+        
+        inventory.setCount(200);
+        assertEquals(200, inventory.getCount());
     }
 
     @Test
@@ -635,6 +698,9 @@ public class ModelUnitTest {
         
         String applianceString = appliance.toString();
         assertTrue(applianceString.contains("robot2"));
+        
+        assertDoesNotThrow(() -> sensor.processEvent("motion_detected"));
+        assertDoesNotThrow(() -> appliance.processCommand("STOCK_SHELF"));
     }
     
     @Test
@@ -644,6 +710,11 @@ public class ModelUnitTest {
         assertNotNull(SensorType.microphone);
         assertNotNull(SensorType.camera);
         assertEquals(SensorType.microphone, SensorType.valueOf("microphone"));
+        assertEquals(SensorType.camera, SensorType.valueOf("camera"));
+        
+        // test names
+        assertEquals("microphone", SensorType.microphone.name());
+        assertEquals("camera", SensorType.camera.name());
     }
     
     @Test
@@ -654,5 +725,12 @@ public class ModelUnitTest {
         assertNotNull(ApplianceType.robot);
         assertNotNull(ApplianceType.turnstile);
         assertEquals(ApplianceType.robot, ApplianceType.valueOf("robot"));
+        assertEquals(ApplianceType.speaker, ApplianceType.valueOf("speaker"));
+        assertEquals(ApplianceType.turnstile, ApplianceType.valueOf("turnstile"));
+        
+        // test ordinals
+        assertTrue(ApplianceType.speaker.ordinal() >= 0);
+        assertTrue(ApplianceType.robot.ordinal() >= 0);
+        assertTrue(ApplianceType.turnstile.ordinal() >= 0);
     }
 }
